@@ -22,10 +22,11 @@ h1 {
   display: inline-block;
   padding: 1.25em 3em;
   text-decoration: none;
-  -webkit-transition: 0.25s ease;
-  transition: 0.25s ease; }
+	border: 3px solid white;
+  -webkit-transition: 1s ease-in-out;
+  transition: border 1s ease-in-out; }
   .button:hover {
-    color: #000; }
+     border: 3px solid #000; }
 
 .screen {
   text-align: center;
@@ -138,8 +139,8 @@ h1 {
       background-color: #3688C3;
       background-image: url(../img/x.svg); }
 
-#gameStart {
-	background: grey;
+/*#gameStart {
+	background: black;
 	position:absolute;
 	z-index:1;
-}
+}*/
