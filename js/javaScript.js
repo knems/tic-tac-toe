@@ -2,41 +2,62 @@
 
 var loadScreen =(function(){
 
-	var $start = $('#start');
-	var $finish = $('#finish');
-	var $board = $('#board');
-	var $button = $start.find('a');
+	let $start = $('#start');
+	let $finish = $('#finish');
+	let $board = $('#board');
+	let $button = $start.find('#startButton');
+	let $playerNames = $start.find('.playerNames');
+	let $api = $start.find('#api');
+	let $startButton = $start.find('#startButton');
+	let $hidePlayerTwo = $playerNames.children().eq(1);
+
+	$startButton.hide();
+	$playerNames.hide();
 	$board.hide();
 	$finish.hide();
+
+	$api.find('a').on('click', apiPlaying);
 	$button.on('click', startGame);
 
-	function startGame () {
+	function apiPlaying(event){
+		if(event.target.innerHTML == 'Yes'){
+			$api.hide();
+			$startButton.show();
+			$playerNames.show();
+			$hidePlayerTwo.hide();
+			events.emit('apiIsPlaying');
+		}else if (event.target.innerHTML == 'No') {
+			$api.hide();
+			$startButton.show();
+			$playerNames.show();}}
+
+	function startGame(){
+		var player1Name = document.getElementsByTagName('input')[0].value || 'Player 1';
+		var player2Name = document.getElementsByTagName('input')[1].value || 'Player 2';
+		events.emit('setPlayersName', [player1Name, player2Name]);
 		$('#player1').addClass('active');
 		$start.hide();
-		$board.show();
-	}
-})();
+		$board.show();}}
+)();
 
-let runGame = (() => {
+var runGame = (() => {
 	let player1 = {
 		is: 'Player1',
 		class: 'box-filled-1',
 		svg: 'url(img/o.svg)',
 		winClass: 'screen-win-one',
-		playerName: ''
-	}
+		playerName: ''}
 	let player2 = {
 		is: 'Player2',
 		class: 'box-filled-2',
 		svg: 'url(img/x.svg)',
 		winClass: 'screen-win-two',
-		playerName: ''
-	}
+		playerName: ''}
 
+	// cache dom
 	let $finish = $('#finish')
 	let $message = $finish.find('.message');
 	let $newGameButton = $finish.find('.button');
-	// cache dom
 	let $board = $('#board');
 	let $gameBoard = $board.find('.boxes');
 	let $gameBoxes = $gameBoard.find('.box');
@@ -44,44 +65,83 @@ let runGame = (() => {
 
 	let movesMade = 0;
 	let currentPlayer = player1;
+	let apiEnabled = false;
+
 	// bound events
 	$gameBoxes.hover(playerCanMakeMove, playerDidnNotMakeMove);
 	$gameBoxes.on('click', playerMakesAMove);
 	$newGameButton.on('click', startNewGame);
 
+	events.on('setPlayersName', setPlayersName);
+	events.on('apiIsPlaying', enableApi);
+
+	function enableApi(){
+		apiEnabled = true;
+		player2.playerName = 'API';
+	}
+
 	// event handlers
-	function boxHasNotBeenTaken(event){
-	  return (!$(event.target).hasClass('box-filled-1') && !$(event.target).hasClass('box-filled-2'));}
+	function boxHasNotBeenTaken(box){
+	  return (!$(box).hasClass('box-filled-1') && !$(box).hasClass('box-filled-2'));}
 
 	function playerCanMakeMove (event) {
-		if(boxHasNotBeenTaken(event)){
+		if(boxHasNotBeenTaken(event.target)){
 			event.target.style.backgroundImage = currentPlayer.svg;}}
 
 	function playerDidnNotMakeMove (event) {
-		if(boxHasNotBeenTaken(event)){
+		if(boxHasNotBeenTaken(event.target)){
 			event.target.style.backgroundImage = '';}}
 
 	function playerMakesAMove(event){
-		if(boxHasNotBeenTaken(event)){
+		if(boxHasNotBeenTaken(event.target)){
 			$(event.target).addClass(currentPlayer.class);
 			movesMade++;
-			if(isGameOver(currentPlayer)){
-				gameOver(currentPlayer.winClass, 'Winner');
-			}else if(checkTie()){
-				gameOver('screen-win-tie', 'Tie');
-			}else{//no tie, no winner, game moves on
-				currentPlayer = returnOppositePlayer();
-				events.emit('updatePlayerBoard', currentPlayer);}
+			isGameOver();
 		}else{//player tries making a move on a take box
 			alert('Square is taken punk');}}
 
-	function returnOppositePlayer(){
-		if (currentPlayer == player1) {
-			return currentPlayer = player2;
-		}else if (currentPlayer == player2) {
-			return currentPlayer = player1;}}
+	function apiMakesMove(){
+		var randomNumber = Math.floor((Math.random() * 9));
+		while(true){
+			if(boxHasNotBeenTaken($boardChildren.eq(randomNumber))){
+				break;}
+			else{
+				randomNumber = Math.floor((Math.random() * 9));}}
+		$boardChildren.eq(randomNumber).addClass(player2.class);
+		if(didPlayerWin(currentPlayer)){
+			gameOver(currentPlayer.winClass, (currentPlayer.playerName + ' Wins'));
+		}else if(isGameTied()){
+			gameOver('screen-win-tie', 'Tie');
+		}else{
+			movesMade++;
+			changePlayer()}}
 
-	function isGameOver(player){
+	function changePlayer(){
+		currentPlayer = returnOppositePlayer();
+		events.emit('updatePlayerBoard', currentPlayer);}
+
+	var returnOppositePlayer = function(){
+		if (currentPlayer == player1) {
+			return player2;
+		}else if (currentPlayer == player2) {
+			return player1;}}
+
+	function setPlayersName(playerNames){
+		player1.playerName = playerNames[0];
+		player2.playerName = playerNames[1];
+		$('#player1 div:first-child').html(player1.playerName);
+		$('#player2 div:first-child').html(player2.playerName);}
+
+	function isGameOver(){
+		if(didPlayerWin(currentPlayer)){
+			gameOver(currentPlayer.winClass, (currentPlayer.playerName + ' Wins'));
+		}else if(isGameTied()){
+			gameOver('screen-win-tie', 'Tie');
+		}else{
+			changePlayer();
+			apiEnabled ? apiMakesMove() : false;}}
+
+	function didPlayerWin(player){
 		let playerClass = player.class;
 		let result = false;
 		let check = [
@@ -103,15 +163,14 @@ let runGame = (() => {
 		    break;}}
 		return result;}
 
-	function checkTie(){
-		return (movesMade > 8)}
+	function isGameTied(){
+		return (movesMade > 8);}
 
 	function gameOver(classToAdd, msg){
 		$board.hide();
 		$finish.show();
 		$finish.addClass(classToAdd);
-		$message.html('' + msg +'!');
-	}
+		$message.html('' + msg +'!');}
 
 	function startNewGame(){
 		movesMade = 0;
@@ -120,10 +179,8 @@ let runGame = (() => {
 		$('#player2').removeClass('active');
 		for(let i = 0; i < $boardChildren.length; i++){
 			$boardChildren.eq(i).attr('class', 'box');
-			$boardChildren.eq(i).css('backgroundImage', '');
-		}
+			$boardChildren.eq(i).css('backgroundImage', '');}
 		$board.show();
 		$finish.hide();
-		$finish.attr('class', 'screen screen-win');
-	}
+		$finish.attr('class', 'screen screen-win');}
 })();

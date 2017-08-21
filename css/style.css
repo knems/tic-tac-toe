@@ -15,18 +15,50 @@ h1 {
   text-align: left;
   width: 1.875em; }
 
+.form {
+  display: block;
+	color: black;
+	margin: 3em 0;}
+	.checkboxes {
+		font-family: "Montserrat", sans-serif;
+		display: inline-block;}
+		.checkboxes a {
+			color: #54D17A;
+			background: #fff;
+		  border-radius: 4px;
+		  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.1);
+			padding: .25em 1em;
+		  text-decoration: none;
+			border: 0px solid white;
+		  -webkit-transition: 1s ease-out;
+		  transition: border 1s ease-out;}
+			.checkboxes a:hover{
+				border: 3px solid #D3FFCE;}
+	.form div {
+		display: inline-block;
+	}
+	.form .playerNameInputs input {
+		border-radius: 4px;}
+
+.playerName {
+	color: #FFF;
+	position: absolute;
+	float: left;
+	margin: .8em 3em;
+
+}
+
 .button {
   background: #fff;
   border-radius: 4px;
   box-shadow: 0 2px 0 rgba(0, 0, 0, 0.1);
-  display: inline-block;
-  padding: 1.25em 3em;
+	padding: 1.25em 3em;
   text-decoration: none;
-	border: 3px solid white;
-  -webkit-transition: 1s ease-in-out;
-  transition: border 1s ease-in-out; }
+	border: 0px solid white;
+  -webkit-transition: 1s ease-out;
+  transition: border 1s ease-out; }
   .button:hover {
-     border: 3px solid #000; }
+     border: 6px solid #D3FFCE; }
 
 .screen {
   text-align: center;
@@ -138,9 +170,3 @@ h1 {
     .boxes .box-filled-2 {
       background-color: #3688C3;
       background-image: url(../img/x.svg); }
-
-/*#gameStart {
-	background: black;
-	position:absolute;
-	z-index:1;
-}*/
